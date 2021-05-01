@@ -1,0 +1,170 @@
+---------------------------------------------------FileSystemManager----------------------------------------------------
+Submitter: Michael Korsunsky
+Course: Intro to object oriented programming
+Lecturers: Dr. Noah Gradovitch and Dr. Eli Packer
+
+
+---------------------------------------------------Brief Description----------------------------------------------------
+The system is initiated by the following inputs:
+        1) 'maxSize': max size of the file allowed in the system
+        2) 'file_name': valid name of a file consisting of list of dictionaries (valid json file).
+                        Every dictionary contains a "description" of a file. After the 'init', the system prints
+                        which files were added and which are not.
+
+
+----------------------------------------------------Pre-conditions------------------------------------------------------
+* All 'files' (rows) in the init files are dicts.
+* Once the system is initiated, there is no option to change the 'max size' of the system.
+* All file's names of must be unique (no repetitions).
+
+
+---------------------------------------Types of file objects allowed in system------------------------------------------
+* ImageFile := (name: str, content: str, whoCreated: str, description: str, fileSize: int, dimensions: str)
+* VideoFile := (name: str, content: str, whoCreated: str, description: str, fileSize: int, duration: int)
+* WordFile  := (name: str, content: str, whoCreated: str, description: str, fileSize: int)
+* PdfFile   := (name: str, content: str, whoCreated: str, description: str, fileSize: int, isWriteAble: bool)
+
+possible endings of file's name in each type:
+* WordFile  := '.word'
+* PdfFile   := '.pdf'
+* ImageFile := '.jpg', '.png', 'jpeg'
+* VideoFile := '.avi', '.mp4'
+
+
+------------------------------------------------------Class File--------------------------------------------------------
+* File  := (name: str, content: str, whoCreated: str, description: str, fileSize: int)
+* Class File is a 'super' class for  PdfFile, WordFile, VideoFile, ImageFile
+
+
+---------------------------------------checkFileValidity(self, file: {}) method-----------------------------------------
+* Every 'potential' file dict is checked for its validity, if the function return True for a file dict, thus the file
+  dict is valid and will be added as an object to the system (self.__files).
+* validation tests:
+1) The file dict must contain all those keys: 'name', 'content', 'whoCreated', 'description', 'fileSize'
+2) The only keys allowed in file dict: 'name', 'content', 'whoCreated', 'description', 'fileSize', 'dimensions',
+   'isWriteAble', 'duration
+3) File name has only one dot
+4) Ending of file is one of the following: word, pdf, avi, mp4, jpg, jpeg, png
+5) File size is not negative
+6) If file's size is 0 that the file's content have empty string
+7) File's size is not higher than self.__maxSize
+8) additional checks if the file's "type" is PdfFile:
+    8.1) file of PdfFile type must have 'isWriteAble' as its member
+    8.2)'isWriteAble' must be true/false
+9)additional checks if the file's "type" is VideoFile:
+    9.1) file of VideoFile type must have 'duration' as its member
+    9.2) duration must be positive or equal to zero
+10) additional checks if the file's "type" is ImageFile:
+    10.1) a file with type ImageFile must have "dimensions" as his member
+    10.2) validity of the content in 'dimensions':
+        10.2.1) dimesnsion's content must be in this format: 'number1Xnumber2'
+        10.2.2) number1 and number2 are not negative 'int's
+
+
+--------------------__init__(self, file_name: str, maxSize: int) and addFile(self, file: {}) method---------------------
+* init of FileSystemManager
+* insert variables:
+1) maxSize: int variable. max size of file can be added to the system (self.__files)
+2) file_name: str variable. file name of the init list.
+* members: All members are private.
+1) self.__maxSize: initiated by maxSize variable
+2) self.__files: list of objects (PdfFile, WordFile, ImageFile, VideoFile), initiated by the init file.
+                 all dicts from init file are sent one by one to addFile(self, file: {}) method.
+                 The  addFile(self, file: {}) method sends every file dict to filesSetter(self, file).
+                 There every dict checked for their validity with checkFileValidity(self, file: {}) method and also that
+                 there is no file name already exist in self.__files with the name of the dict with allNames(self), and
+                 from the valid files creates objects with the help of 'createFileObject(createfile: {})' and add them
+                 to self.__files.
+
+* Files can be added (if they are valid) also without using the init list
+* If maxSize received is a negative one, the system will be initiated but no file will bee added to the system.
+* maxSize's value can't be set to a new value after the system is initiated
+* If user will try to add not a valid dict with filesSetter(self, file) he won't succeed.
+* After the initiation of the system, the system will print: all the file dicts from init file, all the file dicts
+  from init file that were added and all the file dicts from init file that were not added.
+
+
+-------------------------------------------------Getters and Setters----------------------------------------------------
+* maxSizeGetter(self): return self.__maxSize
+* filesGetter(self): return a list of objects from self.__files
+* filesSetter(self, file: {}): already discussed before
+* There is no maxSizeSetter because the maxSize initiated in the system can't be changed once initiated.
+
+
+---------------------------------------deleteFile(self, fileName: str) method-------------------------------------------
+* If fileName exist in self.__files. The first found file Object in self.__files with name equals to fileName
+* All files in self.__files have unique names (no repetitions allowed).
+
+
+----------------------------------------getFiles(self, typeFile=None) method--------------------------------------------
+* typeFile default is None, in that case the method will return a dict. The keys in the dict are file types, and the
+  values of every key is a list of names of files of that type in self.__files
+  example:
+  {'Pdf': ['file7.pdf'], 'Word': ['file1.word', 'file2.word'], 'Video': [], 'Image': ['file6.jpg', 'file57.jpg']}
+* Other possibilities for typeFile input are only one the following: 'Pdf', 'Image', 'Word', 'Video'.
+  If one of those inputs given, the method will return a list of file names in self.__files with files with that "type".
+* Word represents WordFile
+  Pdf represents PdfFile
+  Image represents ImageFile
+  Video represents VideoFile
+
+
+---------------------------------cloneFile(self, fileName: str, number: int) method-------------------------------------
+* cloning file content by number given if the cloned file's size is less or equal to self.__maxSize.
+* 'fileName' must exist in the files names of files in self.__files
+* 'number' must be a not negative int higher than 0.
+* If file's size with name equals to fileName is equals to zero, the file will not be cloned
+* If type of file is 'VideoFile' also the duration is cloned by number
+* If type of file is 'ImageFile': the first (left) side dimension is also cloned by number
+* If type of file is 'PdfFile' and file.isWriteAble equals to False the file is not cloned
+* example for cloning content:
+          file1.content = "test"
+          cloneFile(file1, 2) = > file1.content = "testtesttest"
+* The system will print a message if the cloning succeeded
+
+
+-----------------------------------concatFiles(self, file1Name, file2Name) method---------------------------------------
+* Getting two file names as an input and replace the current files with the new file only
+  if max size of the new file smaller or equal to self.__maxSize, the other two files deleted from self.__files
+  and the new file is added to self.__files instead
+* Both files must have the same type
+* The two file names must exist in the names of all files in self.__file
+* If the file's type (they have the same type) is 'VideoFile':
+        'duration''s new value will be the sum of 'duration' of file with file name file1Name and 'duration' of file
+         with file name file2Name
+* If the file's type (they have the same type) is 'PdfFile':
+        'isWriteAble's new value will be the 'and' result of 'isWriteAble' value of file with file name file1Name
+        and 'isWriteAble' value of file with file name file2Name
+* If the file's type (they have the same type) is 'ImageFile':
+        'dimensions's new value will be a concatenated str of: the sum of left side of 'dimensions' value of file with file name
+         file1Name and 'dimensions' left side value of file with file name file2Name, X, and the sum of right side of
+         'dimensions' value of file with file name file1Name and 'dimensions' right side value of file with file name
+         file2Name
+* The name value of the new file will contain a concatenated str of: all str content till dot in file1Name, _,
+  all str content till dot in file2Name  and the ending of file1Name
+  examples: file1.pdf, file2.pdf => file1_file2.pdf
+            file1.avi, file2.mp4 => file1_file2.avi
+* If file1Name == file2Name, only one file will be deleted from self.__files
+* If content of both files equals to "", the content of the new concatenated file will also be equal to ""
+* The system will print a message if the concatenation succeeded
+
+
+--------------------------------------createFileObject(createfile: {}) method-------------------------------------------
+* Getting a valid file dict (precondition) and creating an Object of that file by using one of the '@classmethod's,
+  (depends on file's name ending = > file's type)
+
+
+-----------------------------------------------reprFiles(self) method---------------------------------------------------
+* Returns representation of objects in self.__files, a list of dicts (every dict is a representation of an object's
+  members as keys and their values as values.
+
+
+-----------------------------------------------allNames(self) method----------------------------------------------------
+* Returns a list of all file names in self.__files
+
+
+------------------------------------------------__str__(self) method----------------------------------------------------
+* Returns a str containing number of all files from every type in the self.__files and the self.__maxSize
+
+
+------------------------------------------------end of documentation----------------------------------------------------
